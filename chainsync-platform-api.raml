@@ -1,0 +1,322 @@
+#%RAML 1.0
+title: ChainSync Environmental Services Platform API
+version: v1.0
+baseUri: https://api.chainsync.com/
+mediaType: application/json
+uses:
+  FacilityTypes: types/EnvironmentalFacilityData.raml
+  StationTypes: types/EnvironmentalStationData.raml
+  VehicleTypes: types/EnvironmentalServiceVehicle.raml
+  AlertTypes: types/EnvironmentalEmergencyAlert.raml
+  ComplianceTypes: types/RegulatoryComplianceReport.raml
+  CommonTypes: types/ErrorResponse.raml
+  StationReadingTypes: types/EnvironmentalStationReading.raml
+  FacilityIncidentTypes: types/FacilityIncident.raml
+  VehicleDispatchTypes: types/VehicleDispatchTypes.raml
+
+
+
+traits:
+  pageable: !include traits/PaginationTrait.raml
+  facilityFilterable: !include traits/FacilityFilteringTrait.raml
+  alertFilterable: !include traits/AlertFilterTrait.raml
+  vehicleFilterable: !include traits/VehicleFilterTrait.raml
+  geoFilterable: !include traits/GeoFilterTrait.raml
+  timeRange: !include traits/TimeRangeTrait.raml
+  sorting: !include traits/SortingTrait.raml
+  secured: !include traits/AuthTrait.raml
+
+/environmental-facilities:
+  get:
+    is: [pageable,facilityFilterable,sorting,geoFilterable]
+    responses:
+      200:
+        body:
+          application/json:
+            type: FacilityTypes.EnvironmentalFacilityData[]
+            example: !include examples/EnvironmentalFacility.json
+
+  /{facilityId}:
+    displayName: Single Environmental Facility Monitoring
+    description: Detailed environmental monitoring data for a specific facility
+    uriParameters:
+      facilityId:
+        type: string
+        description: Environmental facility identifier
+        example: "VEOLIA_WTP_NYC_001"
+    get:
+      displayName: Get Single Environmental Facility Data
+      description: Retrieve detailed monitoring data for the specified facility
+      responses:
+        200:
+          description: Environmental facility data retrieved successfully
+          body:
+            application/json:
+              type: FacilityTypes.EnvironmentalFacilityData
+              example: !include examples/EnvironmentalFacilitySingle.json
+        404:
+          description: Facility not found
+          body:
+            application/json:
+              type: CommonTypes.ErrorResponse
+              example:
+                error:
+                  code: "FACILITY_NOT_FOUND"
+                  message: "Environmental facility not found: UNKNOWN_FACILITY"
+                  timestamp: "2025-07-09T20:00:00Z"
+
+/environmental-service-vehicles:
+  get:
+    is: [pageable, vehicleFilterable, sorting, geoFilterable]
+    responses:
+      200:
+        description: List of environmental service vehicles retrieved successfully
+        body:
+          application/json:
+            type: VehicleTypes.EnvironmentalServiceVehicle[]
+            example: !include examples/EnvironmentalServiceVehicle.json
+
+/environmental-service-vehicles/{vehicleId}:
+  displayName: Single Environmental Services Vehicle
+  description: Detailed monitoring and dispatch control for a specific environmental services vehicle
+
+  uriParameters:
+    vehicleId:
+      type: string
+      description: Environmental services vehicle identifier
+      example: "TRUCK_1121"
+
+  get:
+    displayName: Get Vehicle Monitoring Data
+    description: Retrieve real-time status and telemetry of the specified service vehicle
+    is: [secured]
+    responses:
+      200:
+        description: Vehicle data retrieved successfully
+        body:
+          application/json:
+            type: VehicleTypes.EnvironmentalServiceVehicle
+            example: !include examples/EnvironmentalServiceVehicleSingle.json
+      404:
+        description: Vehicle not found
+        body:
+          application/json:
+            type: CommonTypes.ErrorResponse
+            example: !include examples/ErrorVehicleNotFound.json
+
+  /dispatch:
+    post:
+      displayName: Dispatch Vehicle
+      description: Send dispatch instructions to the specified vehicle
+      is: [secured]
+      body:
+        application/json:
+          type: VehicleTypes.VehicleDispatchCommand
+          example: !include examples/VehicleCommandDispatchRequest.json
+      responses:
+        202:
+          description: Dispatch request accepted
+          body:
+            application/json:
+              type: VehicleTypes.VehicleDispatchStatus
+              example: !include examples/VehicleCommandDispatchResponse.json
+        400:
+          description: Invalid dispatch payload
+          body:
+            application/json:
+              type: CommonTypes.ErrorResponse
+        401:
+          description: Unauthorized dispatch attempt
+          body:
+            application/json:
+              type: CommonTypes.ErrorResponse
+
+/environmental-data/{stationId}:
+  displayName: Single Station Environmental Data
+  description: Retrieve current environmental data for a specific monitoring station
+
+  uriParameters:
+    stationId:
+      type: string
+      description: Monitoring station identifier
+      example: "NYC_CENTRAL_001"
+
+  get:
+    displayName: Get Station Environmental Data
+    description: Current air quality, weather, and environmental risk metrics for the station
+    is: [timeRange]
+    responses:
+      200:
+        description: Environmental data retrieved successfully
+        body:
+          application/json:
+            type: StationTypes.EnvironmentalStationData
+            example: !include /examples/EnvironmentalStationSingle.json
+      404:
+        description: Monitoring station not found
+        body:
+          application/json:
+            type: CommonTypes.ErrorResponse
+            example:
+              error:
+                code: "STATION_NOT_FOUND"
+                message: "Monitoring station not found: UNKNOWN_STATION"
+                timestamp: "2025-07-09T20:00:00Z"
+
+/environmental-facilities/{facilityId}/incidents:
+  uriParameters:
+    facilityId:
+      type: string
+      description: Identifier of the environmental facility
+      example: "VEOLIA_WTP_NYC_001"
+
+  post:
+    is: [secured]
+    description: Submit a facility-based incident report for investigation and coordination
+    body:
+      application/json:
+        type: FacilityIncidentTypes.FacilityIncidentReport
+        example: !include examples/FacilityIncidentRequest.json
+    responses:
+      201:
+        description: Incident report accepted
+        body:
+          application/json:
+            type: FacilityIncidentTypes.FacilityIncidentReport
+            example: !include examples/FacilityIncidentResponse.json
+      400:
+        body:
+          application/json:
+            type: CommonTypes.ErrorResponse
+      401:
+        body:
+          application/json:
+            type: CommonTypes.ErrorResponse
+
+
+
+/environmental-emergency-alerts:
+  get:
+    is: [pageable, alertFilterable,sorting,geoFilterable,timeRange]
+    responses:
+      200:
+        body:
+          application/json:
+            type: AlertTypes.EnvironmentalEmergencyAlert[]
+            example: !include examples/EnvironmentalEmergencyAlert.json
+  post:
+    is: [secured]
+    description: Submit a new emergency alert affecting environmental service areas
+    body:
+      application/json:
+        type: AlertTypes.EnvironmentalEmergencyAlert
+        example: !include examples/EnvironmentalEmergencyAlertRequest.json
+    responses:
+      201:
+        description: Emergency alert created successfully
+        body:
+          application/json:
+            type: AlertTypes.EnvironmentalEmergencyAlert
+            example: !include examples/EnvironmentalEmergencyAlertResponse.json
+      400:
+        description: Invalid request or schema violation
+        body:
+          application/json:
+            type: CommonTypes.ErrorResponse
+      401:
+        description: Unauthorized access — missing or invalid token
+        body:
+          application/json:
+            type: CommonTypes.ErrorResponse
+
+/environmental-emergency-coordination/regulatory-reports:
+  post:
+    is: [secured]
+    description: Submit a regulatory report to EPA, DEQ, or other authority
+    body:
+      application/json:
+        type: ComplianceTypes.RegulatoryComplianceReport
+        example: !include examples/RegulatoryComplianceReportRequest.json
+    responses:
+      201:
+        body:
+          application/json:
+            type: ComplianceTypes.RegulatoryComplianceReport
+            example: !include examples/RegulatoryComplianceReportResponse.json
+      400:
+        body:
+          application/json:
+            type: CommonTypes.ErrorResponse
+      401:
+        body:
+          application/json:
+            type: CommonTypes.ErrorResponse
+/regulatory-compliance:
+  get:
+    is: [pageable,timeRange]
+    responses:
+      200:
+        body:
+          application/json:
+            type: ComplianceTypes.RegulatoryComplianceReport[]
+            example: !include examples/RegulatoryComplianceReport.json
+
+
+/environmental-data/{stationId}/readings:
+  uriParameters:
+    stationId:
+      type: string
+      example: "STATION_ATL_034"
+      description: Unique environmental monitoring station ID
+
+  post:
+    displayName: Submit Station Reading
+    description: Inject environmental readings into the data stream for the specified station
+    is: [secured]
+    body:
+      application/json:
+        type: StationReadingTypes.EnvironmentalStationReading
+        example: !include examples/EnvironmentalStationReadingRequest.json
+    responses:
+      200:
+        description: Reading accepted and integrated
+        body:
+          application/json:
+            type: StationReadingTypes.EnvironmentalStationReading
+            example: !include examples/EnvironmentalStationReadingResponse.json
+      400:
+        description: Malformed reading or station mismatch
+        body:
+          application/json:
+            type: CommonTypes.ErrorResponse
+      401:
+        description: Unauthorized or invalid API key
+        body:
+          application/json:
+            type: CommonTypes.ErrorResponse
+
+/health:
+  displayName: Environmental Services Platform Health Check
+  description: Real-time health status for monitoring, coordination, and emergency response
+
+  get:
+    displayName: Get Platform Health Status
+    description: Check the operational status of key systems across the platform
+    is: [timeRange]
+    responses:
+      200:
+        description: Platform is healthy and operational
+        body:
+          application/json:
+            type: object
+            example: !include /examples/PlatformHealth.json
+      503:
+        description: Platform is experiencing issues
+        body:
+          application/json:
+            type: CommonTypes.ErrorResponse
+            example:
+              error:
+                code: "PLATFORM_DOWN"
+                message: "ChainSync platform is reporting degraded performance"
+                timestamp: "2025-07-09T20:00:00Z"

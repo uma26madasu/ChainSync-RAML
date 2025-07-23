@@ -1,0 +1,13 @@
+{
+  "main": "chainsync-platform-api.raml",
+  "name": "chainSync Platform API",
+  "groupId": "7a0fad65-fcd2-46b2-98b4-73027e190087",
+  "assetId": "chainsync-platform-api",
+  "version": "1.0.1",
+  "classifier": "raml",
+  "tags": [],
+  "descriptorVersion": "1.0.0",
+  "organizationId": "7a0fad65-fcd2-46b2-98b4-73027e190087",
+  "apiVersion": "v1.0",
+  "originalFormatVersion": "1.0"
+}
