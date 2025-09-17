@@ -450,7 +450,62 @@ traits:
                     "message": "Methane levels exceeded safe threshold"
                   }
                 }
-
+/water-quality:
+  /{facilityId}:
+    displayName: Water Quality Monitoring
+    description: Real-time water quality parameters for treatment facilities
+    uriParameters:
+      facilityId:
+        type: string
+        example: "VEOLIA_WTP_NYC_001"
+    get:
+      displayName: Get Water Quality Data
+      responses:
+        200:
+          body:
+            application/json:
+              example: |
+                {
+                  "facilityId": "VEOLIA_WTP_NYC_001",
+                  "waterQualityParameters": {
+                    "ph": {"value": 7.2, "status": "NORMAL"},
+                    "turbidity": {"value": 0.5, "status": "GOOD"},
+                    "dissolvedOxygen": {"value": 8.5, "status": "EXCELLENT"},
+                    "chlorineResidual": {"value": 0.8, "status": "ADEQUATE"}
+                  },
+                  "waterQualityIndex": {
+                    "score": 92,
+                    "grade": "A"
+                  },
+                  "compliance": {
+                    "overallStatus": "COMPLIANT",
+                    "epaCompliant": true
+                  }
+                }
+  
+  /alerts:
+    post:
+      displayName: Submit Water Quality Alert
+      body:
+        application/json:
+          example: |
+            {
+              "facilityId": "VEOLIA_WTP_NYC_001",
+              "alertType": "CONTAMINATION",
+              "parameter": "eColi",
+              "value": 5,
+              "threshold": 0
+            }
+      responses:
+        201:
+          body:
+            application/json:
+              example: |
+                {
+                  "alertId": "WQ_ALERT_20250805_143000",
+                  "severity": "CRITICAL",
+                  "message": "Water quality alert processed"
+                }
 /health:
   displayName: Environmental Services Platform Health Check
   description: Real-time health status for monitoring, coordination, and emergency response
