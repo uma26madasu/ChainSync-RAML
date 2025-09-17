@@ -294,6 +294,162 @@ traits:
         body:
           application/json:
             type: CommonTypes.ErrorResponse
+# Add these endpoints to your existing chainsync-platform-api.raml file
+
+/esg:
+  displayName: ESG & Carbon Monitoring
+  description: Environmental, Social, and Governance metrics for investor reporting
+
+  /air-quality/{facilityId}:
+    displayName: Facility Air Quality & Carbon Monitoring
+    description: Real-time air quality and carbon metrics for ESG reporting
+    uriParameters:
+      facilityId:
+        type: string
+        description: Environmental facility identifier
+        example: "VEOLIA_WTP_NYC_001"
+    get:
+      displayName: Get ESG Air Quality Metrics
+      description: Retrieve comprehensive air quality and carbon data for ESG reporting
+      responses:
+        200:
+          description: ESG metrics retrieved successfully
+          body:
+            application/json:
+              example: |
+                {
+                  "facilityId": "VEOLIA_WTP_NYC_001",
+                  "facilityName": "Veolia NYC Water Treatment Plant",
+                  "timestamp": "2025-08-05T14:30:00Z",
+                  "esgMetrics": {
+                    "airQualityIndex": 2,
+                    "esgRiskScore": 3.5,
+                    "carbonFootprint": {
+                      "co": 1234.5,
+                      "co_mgm3": 1077.6,
+                      "interpretation": "LOW"
+                    },
+                    "nitrogenOxides": {
+                      "no": 12.3,
+                      "no2": 45.6,
+                      "combined_ppb": 57.9,
+                      "interpretation": "ACCEPTABLE"
+                    },
+                    "sulfurDioxide": {
+                      "so2": 23.4,
+                      "so2_ppb": 23.4,
+                      "interpretation": "COMPLIANT"
+                    },
+                    "particulateMatter": {
+                      "pm25": 12.5,
+                      "pm10": 28.3,
+                      "pm25_compliance": true,
+                      "pm10_compliance": true
+                    }
+                  },
+                  "regulatoryCompliance": {
+                    "overallStatus": "COMPLIANT",
+                    "epaCompliant": true,
+                    "whoCompliant": true,
+                    "euCompliant": true,
+                    "violations": []
+                  },
+                  "investorMetrics": {
+                    "environmentalScore": 85,
+                    "carbonIntensity": "LEVEL_A",
+                    "sustainabilityRating": "EXCELLENT",
+                    "tcfdAlignment": {
+                      "climateRiskExposure": "LOW",
+                      "emissionsReduction": "Tracking 3 improvement opportunities"
+                    }
+                  }
+                }
+        404:
+          description: Facility not found
+          body:
+            application/json:
+              type: CommonTypes.ErrorResponse
+
+  /reports/generate:
+    displayName: Generate ESG Report
+    description: Generate comprehensive ESG report for all facilities
+    post:
+      displayName: Generate ESG Report
+      description: Trigger generation of ESG compliance and investor report
+      responses:
+        200:
+          description: Report generated successfully
+          body:
+            application/json:
+              example: |
+                {
+                  "reportId": "ESG_REPORT_20250805_143000",
+                  "reportType": "COMPREHENSIVE_ESG_ASSESSMENT",
+                  "generatedAt": "2025-08-05T14:30:00Z",
+                  "executiveSummary": {
+                    "overallESGScore": 72,
+                    "carbonFootprintTrend": "IMPROVING",
+                    "regulatoryCompliance": 94,
+                    "investorGrade": "B+"
+                  },
+                  "environmentalMetrics": {
+                    "totalFacilities": 6,
+                    "compliantFacilities": 6,
+                    "averageAirQualityIndex": 85,
+                    "carbonMetrics": {
+                      "totalCO2Equivalent": 1250.5,
+                      "unit": "metric_tons",
+                      "reductionFromBaseline": 12.3
+                    }
+                  }
+                }
+
+  /iot-readings:
+    displayName: IoT Sensor Data Ingestion
+    description: Receive data from IoT air quality and methane sensors
+    post:
+      displayName: Submit IoT Sensor Reading
+      description: Process real-time data from environmental IoT sensors
+      body:
+        application/json:
+          example: |
+            {
+              "sensorId": "SENSOR_CH4_001",
+              "facilityId": "VEOLIA_WTP_NYC_001",
+              "sensorType": "METHANE",
+              "readings": {
+                "methane_ppm": 1250,
+                "temperature": 22.5,
+                "humidity": 65,
+                "timestamp": "2025-08-05T14:25:00Z"
+              }
+            }
+      responses:
+        200:
+          description: Sensor data processed successfully
+          body:
+            application/json:
+              example: |
+                {
+                  "status": "PROCESSED",
+                  "sensorId": "SENSOR_CH4_001",
+                  "facilityId": "VEOLIA_WTP_NYC_001",
+                  "methaneAnalysis": {
+                    "concentration_ppm": 1250,
+                    "riskLevel": "MEDIUM",
+                    "leakDetected": true
+                  },
+                  "compliance": {
+                    "thresholdExceeded": true,
+                    "reportingRequired": false,
+                    "complianceStatus": "VIOLATION"
+                  },
+                  "alerts": {
+                    "triggered": true,
+                    "alertLevel": "MEDIUM",
+                    "message": "Methane levels exceeded safe threshold"
+                  }
+                }
 
 /health:
   displayName: Environmental Services Platform Health Check
